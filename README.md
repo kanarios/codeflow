@@ -8,7 +8,7 @@
 
 A powerful real-time collaborative coding tool. CodeFlow makes it easy to conduct technical interviews, teach programming, and collaborate on code with your team.
 
-![CodeFlow Demo](https://via.placeholder.com/800x400?text=CodeFlow+Demo)
+![CodeFlow Demo](https://livecoding-327628718bd5.herokuapp.com)
 
 ## ✨ Features
 
