@@ -1,0 +1,17 @@
+{
+  "name": "Livecoding Interview",
+  "description": "Real-time collaborative coding platform",
+  "repository": "https://github.com/yourusername/livecoding-interview",
+  "keywords": ["node", "express", "socket.io", "react"],
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment setting",
+      "value": "production"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
