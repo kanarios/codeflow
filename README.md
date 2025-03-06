@@ -13,8 +13,6 @@ A powerful real-time collaborative coding tool. CodeFlow makes it easy to conduc
 ## ✨ Features
 
 - 🔄 **Real-time collaborative editing**
-- 🎯 **Multi-language support** (JavaScript, Python, Java, TypeScript)
-- 👥 **Multi-cursor tracking**
 - 🚀 **Instant code execution**
 - 🔒 **Secure sandboxed environment**
 - 🎨 **Syntax highlighting**
@@ -33,7 +31,7 @@ A powerful real-time collaborative coding tool. CodeFlow makes it easy to conduc
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/codeflow.git
+git clone https://github.com/kanarios/codeflow.git
 cd codeflow
 ```
 
