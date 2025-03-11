@@ -1402,6 +1402,12 @@ function App() {
                         suggestOnTriggerCharacters: true,
                         acceptSuggestionOnEnter: 'on',
                         snippetSuggestions: 'top',
+                        ursorSmoothCaretAnimation: 'on',
+                        cursorBlinking: 'smooth',
+                        renderWhitespace: 'selection',
+                        autoClosingBrackets: 'always',
+                        autoClosingQuotes: 'always',
+                        autoSurround: 'languageDefined',
                         suggest: {
                           showKeywords: true,
                           showSnippets: true,

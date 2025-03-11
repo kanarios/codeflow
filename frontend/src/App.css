@@ -508,3 +508,80 @@ select {
     justify-content: center;
   }
 }
+
+/* Стили для выделений других пользователей */
+.remote-selection {
+  background-color: rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.remote-selection-0 {
+  border: 1px solid #ffc600;
+}
+
+.remote-selection-1 {
+  border: 1px solid #ff00c6;
+}
+
+.remote-selection-2 {
+  border: 1px solid #00ffc6;
+}
+
+.remote-selection-3 {
+  border: 1px solid #c6ff00;
+}
+
+.remote-selection-label {
+  position: absolute;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #fff;
+  z-index: 100;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Стили для курсоров других пользователей с разными цветами */
+.remote-cursor-0 {
+  background-color: #ffc600;
+}
+
+.remote-cursor-1 {
+  background-color: #ff00c6;
+}
+
+.remote-cursor-2 {
+  background-color: #00ffc6;
+}
+
+.remote-cursor-3 {
+  background-color: #c6ff00;
+}
+
+/* Стили для курсоров других пользователей */
+.remote-cursor {
+  position: absolute;
+  width: 2px;
+  height: 18px;
+  z-index: 100;
+  pointer-events: none;
+  animation: blink 1s infinite;
+}
+
+.remote-cursor-label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

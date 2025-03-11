@@ -112,6 +112,7 @@ io.on('connection', (socket) => {
 
   // Обновим обработчик выделения
   socket.on('selection_change', ({ sessionId, selection, userName }) => {
+    // Отправляем информацию о выделении всем пользователям в сессии, кроме отправителя
     socket.to(sessionId).emit('selection_update', {
       userId: socket.id,
       selection,
