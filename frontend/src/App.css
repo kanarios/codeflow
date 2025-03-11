@@ -86,6 +86,50 @@ body {
   gap: 1.2rem;
 }
 
+/* Стили для контейнера ввода никнейма */
+.nickname-input-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.nickname-input {
+  flex-grow: 1;
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius);
+  color: var(--text);
+  font-size: 1rem;
+  transition: var(--transition);
+  padding-right: 50px; /* Место для кнопки */
+}
+
+.generate-nickname-button {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: var(--transition);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.generate-nickname-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--primary);
+  transform: rotate(15deg);
+}
+
 .input-group input {
   padding: 1rem 1.2rem;
   background: rgba(255, 255, 255, 0.05);
