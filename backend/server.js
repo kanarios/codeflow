@@ -64,7 +64,17 @@ io.on('connection', (socket) => {
       participants: new Set([socket.id])
     });
     socket.join(sessionId);
+    socket.sessionId = sessionId;
     socket.emit('session_created', sessionId);
+
+    // Отправляем информацию о новом участнике всем в сессии
+    const participantsInfo = Array.from(sessions.get(sessionId).participants).map(id => ({
+      userId: id,
+      userName: users.get(id) || 'Аноним'
+    }));
+
+    // Отправляем всем участникам обновленный список
+    io.to(sessionId).emit('participants_update', participantsInfo);
   });
 
   // Присоединение к существующей сессии
@@ -74,12 +84,23 @@ io.on('connection', (socket) => {
       session.participants.add(socket.id);
       socket.join(sessionId);
       socket.sessionId = sessionId;
-      socket.userId = socket.id;
+
       // Отправляем начальное состояние сессии
       socket.emit('session_joined', {
         code: session.code,
         language: session.language
       });
+
+      // Отправляем информацию о новом участнике всем в сессии
+      const participantsInfo = Array.from(session.participants).map(id => ({
+        userId: id,
+        userName: users.get(id) || 'Аноним'
+      }));
+
+      console.log(`Пользователь ${socket.id} присоединился к сессии ${sessionId}. Список участников:`, participantsInfo);
+
+      // Отправляем всем участникам обновленный список
+      io.to(sessionId).emit('participants_update', participantsInfo);
     }
   });
 
@@ -107,7 +128,21 @@ io.on('connection', (socket) => {
 
   // Установка имени пользователя
   socket.on('set_user_name', ({ fullName }) => {
+    console.log(`Пользователь ${socket.id} установил имя: ${fullName}`);
     users.set(socket.id, fullName);
+
+    // Если пользователь в сессии, отправляем обновленную информацию всем участникам
+    if (socket.sessionId) {
+      const session = sessions.get(socket.sessionId);
+      if (session) {
+        const participantsInfo = Array.from(session.participants).map(id => ({
+          userId: id,
+          userName: users.get(id) || 'Аноним'
+        }));
+        console.log(`Отправляем обновленный список участников для сессии ${socket.sessionId}:`, participantsInfo);
+        io.to(socket.sessionId).emit('participants_update', participantsInfo);
+      }
+    }
   });
 
   // Обновим обработчик выделения
@@ -121,11 +156,36 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    console.log(`Пользователь ${socket.id} отключился`);
+
     if (socket.sessionId) {
-      io.to(socket.sessionId).emit('user_disconnected', {
-        userId: socket.id,
-        userName: users.get(socket.id)
-      });
+      const session = sessions.get(socket.sessionId);
+      if (session) {
+        // Удаляем пользователя из списка участников сессии
+        session.participants.delete(socket.id);
+
+        // Отправляем уведомление о выходе пользователя
+        io.to(socket.sessionId).emit('user_disconnected', {
+          userId: socket.id,
+          userName: users.get(socket.id)
+        });
+
+        // Отправляем обновленный список участников
+        const participantsInfo = Array.from(session.participants).map(id => ({
+          userId: id,
+          userName: users.get(id) || 'Аноним'
+        }));
+
+        console.log(`Обновленный список участников после отключения пользователя ${socket.id}:`, participantsInfo);
+
+        io.to(socket.sessionId).emit('participants_update', participantsInfo);
+
+        // Если в сессии не осталось участников, удаляем ее
+        if (session.participants.size === 0) {
+          console.log(`Сессия ${socket.sessionId} удалена, так как не осталось участников`);
+          sessions.delete(socket.sessionId);
+        }
+      }
       users.delete(socket.id);
     }
   });
