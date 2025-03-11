@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { io } from 'socket.io-client';
 import MonacoEditor from '@monaco-editor/react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import './editor.css';
 import './App.css';
+import { RemoteCursorManager, RemoteSelectionManager } from '@convergencelabs/monaco-collab-ext';
 
 const BACKEND_URL = process.env.NODE_ENV === 'production'
   ? window.location.origin
@@ -200,42 +201,6 @@ const SelectionDecoration = React.memo(({ selection, color, userName }) => {
   );
 });
 
-// Добавляем компонент для отображения курсора другого пользователя
-const RemoteCursor = React.memo(({ position, color, userName }) => {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: position.lineNumber - 1,
-        left: position.column - 1,
-        width: '2px',
-        height: '18px',
-        backgroundColor: color,
-        opacity: 0.8,
-        pointerEvents: 'none',
-        zIndex: 100
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          top: '-18px',
-          left: '0',
-          fontSize: '12px',
-          padding: '2px 4px',
-          borderRadius: '4px',
-          backgroundColor: color,
-          color: '#fff',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none'
-        }}
-      >
-        {userName}
-      </div>
-    </div>
-  );
-});
-
 function App() {
   const [sessionId, setSessionId] = useState(null);
   const [code, setCode] = useState('');
@@ -260,6 +225,8 @@ function App() {
   const [userSurname, setUserSurname] = useState('');
   const [isNameSet, setIsNameSet] = useState(!!Cookies.get(COOKIE_NICKNAME));
   const [participants, setParticipants] = useState([]);
+  const remoteCursorManagerRef = useRef(null);
+  const remoteSelectionManagerRef = useRef(null);
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -278,38 +245,13 @@ function App() {
     });
 
     socket.on('code_update', (newCode) => {
-      // Сохраняем текущую позицию курсора перед обновлением кода
-      const currentPosition = editorInstance?.getPosition();
-
-      // Обновляем код
       setCode(newCode);
-
-      // Восстанавливаем позицию курсора после обновления кода
-      if (currentPosition && editorInstance) {
-        setTimeout(() => {
-          editorInstance.setPosition(currentPosition);
-          editorInstance.revealPositionInCenter(currentPosition);
-        }, 0);
-      }
     });
 
     socket.on('session_joined', (sessionData) => {
       console.log('Joined session, received data:', sessionData);
-
-      // Сохраняем текущую позицию курсора перед обновлением кода
-      const currentPosition = editorInstance?.getPosition();
-
-      // Обновляем код и язык
       setCode(sessionData.code);
       setLanguage(sessionData.language);
-
-      // Восстанавливаем позицию курсора после обновления кода
-      if (currentPosition && editorInstance) {
-        setTimeout(() => {
-          editorInstance.setPosition(currentPosition);
-          editorInstance.revealPositionInCenter(currentPosition);
-        }, 0);
-      }
     });
 
     socket.on('execution_result', (result) => {
@@ -330,12 +272,88 @@ function App() {
       setError(null);
     });
 
+    socket.on('selection_update', ({ userId, selection, userName }) => {
+      // Обновляем состояние выделений для отслеживания
+      setSelections(prev => ({
+        ...prev,
+        [userId]: selection
+      }));
+
+      // Проверяем, что менеджеры и редактор инициализированы
+      if (!remoteCursorManagerRef.current || !remoteSelectionManagerRef.current || !editorInstance) {
+        return;
+      }
+
+      try {
+        // Обновляем удаленный курсор
+        const remoteCursor = remoteCursorManagerRef.current.addCursor(
+          userId,
+          getColorForIndex(userId.charCodeAt(0) % 4),
+          userName || userId.slice(0, 6)
+        );
+
+        // Устанавливаем позицию курсора на конец выделения
+        if (remoteCursor && selection) {
+          remoteCursor.setOffset(selection.endLineNumber, selection.endColumn);
+        }
+
+        // Обновляем удаленное выделение
+        if (selection && (selection.startLineNumber !== selection.endLineNumber || selection.startColumn !== selection.endColumn)) {
+          const remoteSelection = remoteSelectionManagerRef.current.addSelection(
+            userId,
+            getColorForIndex(userId.charCodeAt(0) % 4)
+          );
+
+          if (remoteSelection) {
+            remoteSelection.setOffsets(
+              selection.startLineNumber, selection.startColumn,
+              selection.endLineNumber, selection.endColumn
+            );
+          }
+        } else {
+          // Проверяем, существует ли выделение перед его удалением
+          try {
+            remoteSelectionManagerRef.current.removeSelection(userId);
+          } catch (e) {
+            console.log(`Выделение для пользователя ${userId} не найдено:`, e.message);
+          }
+        }
+      } catch (e) {
+        console.log(`Ошибка при обновлении курсора/выделения для ${userId}:`, e.message);
+      }
+    });
+
     socket.on('user_disconnected', ({ userId }) => {
       setSelections(prev => {
         const newSelections = { ...prev };
         delete newSelections[userId];
         return newSelections;
       });
+
+      // Проверяем, что менеджеры инициализированы
+      if (!remoteCursorManagerRef.current || !remoteSelectionManagerRef.current) {
+        return;
+      }
+
+      try {
+        if (remoteCursorManagerRef.current) {
+          try {
+            remoteCursorManagerRef.current.removeCursor(userId);
+          } catch (e) {
+            console.log(`Курсор для пользователя ${userId} не найден:`, e.message);
+          }
+        }
+
+        if (remoteSelectionManagerRef.current) {
+          try {
+            remoteSelectionManagerRef.current.removeSelection(userId);
+          } catch (e) {
+            console.log(`Выделение для пользователя ${userId} не найдено:`, e.message);
+          }
+        }
+      } catch (e) {
+        console.log(`Ошибка при удалении курсора/выделения для ${userId}:`, e.message);
+      }
     });
 
     socket.on('participants_update', (participantsInfo) => {
@@ -388,10 +406,38 @@ function App() {
       socket.off('connect');
       socket.off('connect_error');
       socket.off('session_created');
+      socket.off('selection_update');
       socket.off('user_disconnected');
       socket.off('participants_update');
+
+      // Очищаем ресурсы менеджеров курсоров и выделений
+      // Проверяем, что менеджеры инициализированы
+      if (!remoteCursorManagerRef.current || !remoteSelectionManagerRef.current) {
+        return;
+      }
+
+      try {
+        // Получаем все идентификаторы курсоров и удаляем их
+        if (selections) {
+          Object.keys(selections).forEach(userId => {
+            try {
+              remoteCursorManagerRef.current.removeCursor(userId);
+            } catch (e) {
+              console.log(`Курсор для пользователя ${userId} не найден:`, e.message);
+            }
+
+            try {
+              remoteSelectionManagerRef.current.removeSelection(userId);
+            } catch (e) {
+              console.log(`Выделение для пользователя ${userId} не найдено:`, e.message);
+            }
+          });
+        }
+      } catch (e) {
+        console.log('Ошибка при очистке ресурсов менеджеров курсоров и выделений:', e.message);
+      }
     };
-  }, [userName, userSurname]);
+  }, [userName, userSurname, editorInstance, selections]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -468,23 +514,8 @@ function App() {
 
   const handleCodeChange = (newCode) => {
     console.log('Code changed');
-
-    // Сохраняем текущую позицию курсора перед обновлением кода
-    const currentPosition = editorInstance?.getPosition();
-
-    // Обновляем код
     setCode(newCode);
-
-    // Отправляем изменения на сервер
     socket.emit('code_change', { sessionId, code: newCode });
-
-    // Восстанавливаем позицию курсора после обновления кода
-    if (currentPosition && editorInstance) {
-      setTimeout(() => {
-        editorInstance.setPosition(currentPosition);
-        editorInstance.revealPositionInCenter(currentPosition);
-      }, 0);
-    }
   };
 
   const executeCode = () => {
@@ -568,14 +599,54 @@ function App() {
     window.monacoInstance = monaco;
     setIsEditorReady(true);
 
-    // Добавляем флаг для отслеживания, было ли изменение курсора вызвано программно
-    let isLocalSelectionChange = true;
+    // Инициализируем менеджер удаленных курсоров
+    remoteCursorManagerRef.current = new RemoteCursorManager({
+      editor: editor,
+      tooltipDuration: 2000,
+      remoteCursorColorSeed: 'cursor'
+    });
 
-    // Добавляем обработчик изменения курсора
+    // Инициализируем менеджер удаленных выделений
+    remoteSelectionManagerRef.current = new RemoteSelectionManager({
+      editor: editor,
+      selectionColorSeed: 'selection'
+    });
+
+    // Добавляем существующие курсоры и выделения, если они есть
+    if (selections && Object.keys(selections).length > 0) {
+      Object.entries(selections).forEach(([userId, selection]) => {
+        try {
+          const remoteCursor = remoteCursorManagerRef.current.addCursor(
+            userId,
+            getColorForIndex(userId.charCodeAt(0) % 4),
+            userId.slice(0, 6)
+          );
+
+          if (remoteCursor && selection) {
+            remoteCursor.setOffset(selection.endLineNumber, selection.endColumn);
+          }
+
+          if (selection && (selection.startLineNumber !== selection.endLineNumber || selection.startColumn !== selection.endColumn)) {
+            const remoteSelection = remoteSelectionManagerRef.current.addSelection(
+              userId,
+              getColorForIndex(userId.charCodeAt(0) % 4)
+            );
+
+            if (remoteSelection) {
+              remoteSelection.setOffsets(
+                selection.startLineNumber, selection.startColumn,
+                selection.endLineNumber, selection.endColumn
+              );
+            }
+          }
+        } catch (e) {
+          console.log(`Ошибка при добавлении курсора/выделения для ${userId}:`, e.message);
+        }
+      });
+    }
+
     editor.onDidChangeCursorSelection((e) => {
-      // Проверяем, что изменение курсора было вызвано пользователем, а не программно
-      if (sessionId && isLocalSelectionChange) {
-        // Создаем объект выделения
+      if (sessionId) {
         const selection = {
           startLineNumber: e.selection.startLineNumber,
           startColumn: e.selection.startColumn,
@@ -586,34 +657,15 @@ function App() {
         // Формируем полное имя пользователя
         const fullName = userSurname ? `${userName} ${userSurname}` : userName;
 
-        // Отправляем информацию о выделении на сервер
+        // Отправляем выделение с именем пользователя
         socket.emit('selection_change', {
           sessionId,
           selection,
           userName: fullName || 'Аноним'
         });
       }
-      // Сбрасываем флаг после обработки события
-      isLocalSelectionChange = true;
     });
-
-    // Добавляем обработчик для отображения курсоров других пользователей
-    socket.on('selection_update', ({ userId, selection }) => {
-      // Не перемещаем курсор текущего пользователя, только отображаем курсоры других
-      if (userId !== socket.id) {
-        // Обновляем состояние selections для отображения курсоров других пользователей
-        setSelections(prev => ({
-          ...prev,
-          [userId]: selection
-        }));
-      }
-    });
-
-    // Отписываемся от события при размонтировании компонента
-    return () => {
-      socket.off('selection_update');
-    };
-  }, [sessionId, userName, userSurname]);
+  }, [sessionId, userName, userSurname, selections]);
 
   const handleEditorWillMount = useCallback((monaco) => {
     // Определяем тему редактора
@@ -699,44 +751,6 @@ function App() {
     // Обработка ошибок валидации кода
     markers.forEach((marker) => console.log('Validation:', marker.message));
   }, []);
-
-  useEffect(() => {
-    if (editorInstance && selections && window.monacoInstance) {
-      // Удаляем старые декорации
-      const oldDecorations = editorInstance.getModel()?.getAllDecorations() || [];
-      editorInstance.deltaDecorations(
-        oldDecorations.map(d => d.id),
-        []
-      );
-
-      // Добавляем новые декорации для каждого пользователя
-      Object.entries(selections).forEach(([userId, selection], index) => {
-        if (!selection || userId === socket.id) return; // Не отображаем свой собственный курсор
-
-        editorInstance.deltaDecorations(
-          [],
-          [{
-            range: new window.monacoInstance.Range(
-              selection.startLineNumber,
-              selection.startColumn,
-              selection.endLineNumber,
-              selection.endColumn
-            ),
-            options: {
-              className: `remote-selection remote-selection-${index % 4}`,
-              hoverMessage: { value: `Выделение пользователя ${userId.slice(0, 6)}` },
-              stickiness: window.monacoInstance.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-              beforeContentClassName: 'remote-selection-label',
-              before: {
-                content: `👤 ${userId.slice(0, 6)}`,
-                backgroundColor: getColorForIndex(index)
-              }
-            }
-          }]
-        );
-      });
-    }
-  }, [editorInstance, selections]);
 
   // Функция для получения цвета по индексу
   const getColorForIndex = (index) => {
@@ -955,18 +969,12 @@ function App() {
                         suggestOnTriggerCharacters: true,
                         acceptSuggestionOnEnter: 'on',
                         snippetSuggestions: 'top',
-                        cursorSmoothCaretAnimation: 'on',
+                      cursorSmoothCaretAnimation: 'on',
                         cursorBlinking: 'smooth',
                         renderWhitespace: 'selection',
                         autoClosingBrackets: 'always',
                         autoClosingQuotes: 'always',
                         autoSurround: 'languageDefined',
-                        readOnly: false,
-                        disableLayerHinting: true,
-                        hideCursorInOverviewRuler: false,
-                        overviewRulerBorder: false,
-                        renderLineHighlight: 'all',
-                        renderLineHighlightOnlyWhenFocus: false,
                         suggest: {
                           showKeywords: true,
                           showSnippets: true,

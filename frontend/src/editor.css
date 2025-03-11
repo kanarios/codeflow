@@ -148,3 +148,29 @@
   color: var(--text-secondary);
   padding: 1rem;
 }
+
+/* Стили для удаленных курсоров и выделений из monaco-collab-ext */
+.monaco-remote-cursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  width: 2px;
+}
+
+.monaco-remote-cursor-tooltip {
+  position: absolute;
+  white-space: nowrap;
+  color: white;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.monaco-remote-selection {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.3;
+  z-index: 10;
+}
