@@ -63,7 +63,7 @@ docker-clean: ## Очистка Docker ресурсов
 # Команды для Heroku
 heroku-deploy: ## Деплой на Heroku
 	@echo "$(CYAN)Деплой на Heroku...$(NC)"
-	@git push heroku main
+	@git push heroku main --force
 
 heroku-logs: ## Просмотр логов Heroku
 	@heroku logs --tail -a $(APP_NAME)

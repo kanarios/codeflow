@@ -200,6 +200,42 @@ const SelectionDecoration = React.memo(({ selection, color, userName }) => {
   );
 });
 
+// Добавляем компонент для отображения курсора другого пользователя
+const RemoteCursor = React.memo(({ position, color, userName }) => {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: position.lineNumber - 1,
+        left: position.column - 1,
+        width: '2px',
+        height: '18px',
+        backgroundColor: color,
+        opacity: 0.8,
+        pointerEvents: 'none',
+        zIndex: 100
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: '-18px',
+          left: '0',
+          fontSize: '12px',
+          padding: '2px 4px',
+          borderRadius: '4px',
+          backgroundColor: color,
+          color: '#fff',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none'
+        }}
+      >
+        {userName}
+      </div>
+    </div>
+  );
+});
+
 function App() {
   const [sessionId, setSessionId] = useState(null);
   const [code, setCode] = useState('');
@@ -242,13 +278,38 @@ function App() {
     });
 
     socket.on('code_update', (newCode) => {
+      // Сохраняем текущую позицию курсора перед обновлением кода
+      const currentPosition = editorInstance?.getPosition();
+
+      // Обновляем код
       setCode(newCode);
+
+      // Восстанавливаем позицию курсора после обновления кода
+      if (currentPosition && editorInstance) {
+        setTimeout(() => {
+          editorInstance.setPosition(currentPosition);
+          editorInstance.revealPositionInCenter(currentPosition);
+        }, 0);
+      }
     });
 
     socket.on('session_joined', (sessionData) => {
       console.log('Joined session, received data:', sessionData);
+
+      // Сохраняем текущую позицию курсора перед обновлением кода
+      const currentPosition = editorInstance?.getPosition();
+
+      // Обновляем код и язык
       setCode(sessionData.code);
       setLanguage(sessionData.language);
+
+      // Восстанавливаем позицию курсора после обновления кода
+      if (currentPosition && editorInstance) {
+        setTimeout(() => {
+          editorInstance.setPosition(currentPosition);
+          editorInstance.revealPositionInCenter(currentPosition);
+        }, 0);
+      }
     });
 
     socket.on('execution_result', (result) => {
@@ -267,13 +328,6 @@ function App() {
       console.log('Session created:', id);
       setSessionId(id);
       setError(null);
-    });
-
-    socket.on('selection_update', ({ userId, selection }) => {
-      setSelections(prev => ({
-        ...prev,
-        [userId]: selection
-      }));
     });
 
     socket.on('user_disconnected', ({ userId }) => {
@@ -334,7 +388,6 @@ function App() {
       socket.off('connect');
       socket.off('connect_error');
       socket.off('session_created');
-      socket.off('selection_update');
       socket.off('user_disconnected');
       socket.off('participants_update');
     };
@@ -415,8 +468,23 @@ function App() {
 
   const handleCodeChange = (newCode) => {
     console.log('Code changed');
+
+    // Сохраняем текущую позицию курсора перед обновлением кода
+    const currentPosition = editorInstance?.getPosition();
+
+    // Обновляем код
     setCode(newCode);
+
+    // Отправляем изменения на сервер
     socket.emit('code_change', { sessionId, code: newCode });
+
+    // Восстанавливаем позицию курсора после обновления кода
+    if (currentPosition && editorInstance) {
+      setTimeout(() => {
+        editorInstance.setPosition(currentPosition);
+        editorInstance.revealPositionInCenter(currentPosition);
+      }, 0);
+    }
   };
 
   const executeCode = () => {
@@ -500,8 +568,14 @@ function App() {
     window.monacoInstance = monaco;
     setIsEditorReady(true);
 
+    // Добавляем флаг для отслеживания, было ли изменение курсора вызвано программно
+    let isLocalSelectionChange = true;
+
+    // Добавляем обработчик изменения курсора
     editor.onDidChangeCursorSelection((e) => {
-      if (sessionId) {
+      // Проверяем, что изменение курсора было вызвано пользователем, а не программно
+      if (sessionId && isLocalSelectionChange) {
+        // Создаем объект выделения
         const selection = {
           startLineNumber: e.selection.startLineNumber,
           startColumn: e.selection.startColumn,
@@ -512,14 +586,33 @@ function App() {
         // Формируем полное имя пользователя
         const fullName = userSurname ? `${userName} ${userSurname}` : userName;
 
-        // Отправляем выделение с именем пользователя
+        // Отправляем информацию о выделении на сервер
         socket.emit('selection_change', {
           sessionId,
           selection,
           userName: fullName || 'Аноним'
         });
       }
+      // Сбрасываем флаг после обработки события
+      isLocalSelectionChange = true;
     });
+
+    // Добавляем обработчик для отображения курсоров других пользователей
+    socket.on('selection_update', ({ userId, selection }) => {
+      // Не перемещаем курсор текущего пользователя, только отображаем курсоры других
+      if (userId !== socket.id) {
+        // Обновляем состояние selections для отображения курсоров других пользователей
+        setSelections(prev => ({
+          ...prev,
+          [userId]: selection
+        }));
+      }
+    });
+
+    // Отписываемся от события при размонтировании компонента
+    return () => {
+      socket.off('selection_update');
+    };
   }, [sessionId, userName, userSurname]);
 
   const handleEditorWillMount = useCallback((monaco) => {
@@ -618,7 +711,7 @@ function App() {
 
       // Добавляем новые декорации для каждого пользователя
       Object.entries(selections).forEach(([userId, selection], index) => {
-        if (!selection) return;
+        if (!selection || userId === socket.id) return; // Не отображаем свой собственный курсор
 
         editorInstance.deltaDecorations(
           [],
@@ -632,6 +725,7 @@ function App() {
             options: {
               className: `remote-selection remote-selection-${index % 4}`,
               hoverMessage: { value: `Выделение пользователя ${userId.slice(0, 6)}` },
+              stickiness: window.monacoInstance.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
               beforeContentClassName: 'remote-selection-label',
               before: {
                 content: `👤 ${userId.slice(0, 6)}`,
@@ -861,12 +955,18 @@ function App() {
                         suggestOnTriggerCharacters: true,
                         acceptSuggestionOnEnter: 'on',
                         snippetSuggestions: 'top',
-                      cursorSmoothCaretAnimation: 'on',
+                        cursorSmoothCaretAnimation: 'on',
                         cursorBlinking: 'smooth',
                         renderWhitespace: 'selection',
                         autoClosingBrackets: 'always',
                         autoClosingQuotes: 'always',
                         autoSurround: 'languageDefined',
+                        readOnly: false,
+                        disableLayerHinting: true,
+                        hideCursorInOverviewRuler: false,
+                        overviewRulerBorder: false,
+                        renderLineHighlight: 'all',
+                        renderLineHighlightOnlyWhenFocus: false,
                         suggest: {
                           showKeywords: true,
                           showSnippets: true,
