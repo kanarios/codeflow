@@ -1,12 +1,12 @@
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = function override(config, env) {
-  // Настраиваем обфускацию только для production сборки
+  // Configure obfuscation only for production build
   if (env === 'production') {
-    // Отключаем source maps
+    // Disable source maps
     config.devtool = false;
 
-    // Настраиваем минификатор
+    // Configure minifier
     config.optimization = {
       ...config.optimization,
       minimize: true,

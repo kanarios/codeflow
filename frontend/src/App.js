@@ -209,7 +209,7 @@ const CookieBanner = ({ onClose }) => {
       <div className="cookie-content">
         <p>This application uses&nbsp;cookies to&nbsp;save your&nbsp;nickname and&nbsp;provide a&nbsp;better user&nbsp;experience.</p>
       </div>
-      <button className="cookie-close" onClick={onClose} aria-label="Закрыть" title="Закрыть">
+      <button className="cookie-close" onClick={onClose} aria-label="Close" title="Close">
         ✕
       </button>
     </div>
