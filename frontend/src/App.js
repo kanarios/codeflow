@@ -12,8 +12,8 @@ const BACKEND_URL = process.env.NODE_ENV === 'production'
   : (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001');
 
 // Constants for cookies
-const COOKIE_NICKNAME = 'codeflow_nickname';
-const COOKIE_CONSENT = 'codeflow_cookie_consent';
+const COOKIE_NICKNAME = 'fluxcode_nickname';
+const COOKIE_CONSENT = 'fluxcode_cookie_consent';
 const COOKIE_EXPIRES = 1; // 1 day
 
 // Arrays for generating random nicknames
@@ -1513,7 +1513,6 @@ function App() {
           <div className="user-info">
             <span>{userName}</span>
             <button onClick={handleLogout} className="logout-button">
-              <span className="icon">🚪</span>
               Logout
             </button>
           </div>
