@@ -60,7 +60,7 @@ async function executeCode(language, code) {
         console.error('Cleanup error:', cleanupError);
       }
     }
-    throw new Error(`Ошибка выполнения: ${error.message}`);
+    throw new Error(`Execution error: ${error.message}`);
   }
 }
 
@@ -79,7 +79,7 @@ function getCommandForLanguage(language, code) {
     javascript: ['node', '-e', code],
     python: ['python', '-c', code],
     ruby: ['ruby', '-e', code],
-    java: [] // Требует дополнительной обработки
+    java: [] // Requires additional processing
   };
   return commands[language] || ['node', '-e', code];
 }

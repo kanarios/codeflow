@@ -1,133 +1,119 @@
 .PHONY: setup install start stop logs clean rebuild test deploy help dev watch-logs
 
-# Переменные
+# Variables
 DOCKER_IMAGES = python:alpine node:alpine openjdk11:alpine
 BACKEND_PORT = 5001
 FRONTEND_PORT = 3000
 APP_NAME = livecoding
 
-# Цвета для вывода
+# Colors for output
 CYAN = \033[0;36m
 GREEN = \033[0;32m
 YELLOW = \033[0;33m
 RED = \033[0;31m
 NC = \033[0m # No Color
 
-# Команды разработки
-dev: ## Запуск в режиме разработки (и фронтенд, и бэкенд)
-	@echo "$(CYAN)Запуск в режиме разработки...$(NC)"
+# Development commands
+dev: ## Run in development mode (both frontend and backend)
+	@echo "$(CYAN)Starting development mode...$(NC)"
 	@make -j2 dev-backend dev-frontend
 
-dev-backend: ## Запуск только бэкенда в режиме разработки
-	@echo "$(CYAN)Запуск бэкенда на порту $(BACKEND_PORT)...$(NC)"
+dev-backend: ## Run only backend in development mode
+	@echo "$(CYAN)Starting backend on port $(BACKEND_PORT)...$(NC)"
 	@cd backend && npm run dev
 
-dev-frontend: ## Запуск только фронтенда в режиме разработки
-	@echo "$(CYAN)Запуск фронтенда на порту $(FRONTEND_PORT)...$(NC)"
+dev-frontend: ## Run only frontend in development mode
+	@echo "$(CYAN)Starting frontend on port $(FRONTEND_PORT)...$(NC)"
 	@cd frontend && BROWSER=none npm start
 
-install: ## Установка зависимостей
-	@echo "$(CYAN)Установка зависимостей бэкенда...$(NC)"
+install: ## Install dependencies
+	@echo "$(CYAN)Installing backend dependencies...$(NC)"
 	@cd backend && npm install
-	@echo "$(CYAN)Установка зависимостей фронтенда...$(NC)"
+	@echo "$(CYAN)Installing frontend dependencies...$(NC)"
 	@cd frontend && npm install
-	@echo "$(GREEN)Зависимости установлены!$(NC)"
+	@echo "$(GREEN)Dependencies installed!$(NC)"
 
-# Команды сборки
-build: ## Сборка проекта
-	@echo "$(CYAN)Сборка фронтенда...$(NC)"
+# Build commands
+build: ## Build project
+	@echo "$(CYAN)Building frontend...$(NC)"
 	@cd frontend && npm run build
-	@echo "$(GREEN)Сборка завершена!$(NC)"
+	@echo "$(GREEN)Build complete!$(NC)"
 
-# Команды для Docker
-docker-build: ## Сборка Docker образов
-	@echo "$(CYAN)Сборка Docker образов...$(NC)"
+# Commands for Docker
+docker-build: ## Build Docker images
+	@echo "$(CYAN)Building Docker images...$(NC)"
 	@docker-compose build
 
-docker-up: ## Запуск в Docker
-	@echo "$(CYAN)Запуск в Docker...$(NC)"
+docker-up: ## Run in Docker
+	@echo "$(CYAN)Running in Docker...$(NC)"
 	@docker-compose up -d
 
-docker-down: ## Остановка Docker контейнеров
-	@echo "$(CYAN)Остановка контейнеров...$(NC)"
+docker-down: ## Stop Docker containers
+	@echo "$(CYAN)Stopping containers...$(NC)"
 	@docker-compose down
 
-docker-logs: ## Просмотр логов Docker
+docker-logs: ## View Docker logs
 	@docker-compose logs -f
 
-docker-clean: ## Очистка Docker ресурсов
-	@echo "$(YELLOW)Очистка Docker ресурсов...$(NC)"
+docker-clean: ## Clean Docker resources
+	@echo "$(YELLOW)Cleaning Docker resources...$(NC)"
 	@docker system prune -af
-	@echo "$(GREEN)Docker ресурсы очищены!$(NC)"
+	@echo "$(GREEN)Docker resources cleaned!$(NC)"
 
-# Команды для Heroku
-heroku-deploy: ## Деплой на Heroku
-	@echo "$(CYAN)Деплой на Heroku...$(NC)"
-	@git push heroku main --force
-
-heroku-logs: ## Просмотр логов Heroku
-	@heroku logs --tail -a $(APP_NAME)
-
-heroku-clean: ## Очистка кэша сборки Heroku
-	@echo "$(CYAN)Очистка кэша Heroku...$(NC)"
-	@heroku builds:clear
-
-# Команды для тестирования
-test: ## Запуск тестов
-	@echo "$(CYAN)Запуск тестов фронтенда...$(NC)"
+# Commands for testing
+test: ## Run tests
+	@echo "$(CYAN)Running frontend tests...$(NC)"
 	@cd frontend && npm test
-	@echo "$(CYAN)Запуск тестов бэкенда...$(NC)"
+	@echo "$(CYAN)Running backend tests...$(NC)"
 	@cd backend && npm test
 
-lint: ## Проверка кода линтером
-	@echo "$(CYAN)Проверка кода...$(NC)"
+lint: ## Check code with linter
+	@echo "$(CYAN)Checking code...$(NC)"
 	@cd frontend && npm run lint
 	@cd backend && npm run lint
 
-# Утилиты
-clean: ## Очистка проекта
-	@echo "$(CYAN)Очистка проекта...$(NC)"
+# Utilities
+clean: ## Clean project
+	@echo "$(CYAN)Cleaning project...$(NC)"
 	@rm -rf frontend/node_modules backend/node_modules
 	@rm -rf frontend/build backend/dist
 	@make docker-clean
-	@echo "$(GREEN)Проект очищен!$(NC)"
+	@echo "$(GREEN)Project cleaned!$(NC)"
 
-# Мониторинг и отладка
-status: ## Проверка статуса сервисов
-	@echo "$(CYAN)Статус Docker контейнеров:$(NC)"
+# Monitoring and debugging
+status: ## Check status of services
+	@echo "$(CYAN)Docker containers status:$(NC)"
 	@docker-compose ps
-	@echo "\n$(CYAN)Статус портов:$(NC)"
-	@lsof -i:$(BACKEND_PORT) || echo "Порт $(BACKEND_PORT) свободен"
-	@lsof -i:$(FRONTEND_PORT) || echo "Порт $(FRONTEND_PORT) свободен"
+	@echo "\n$(CYAN)Ports status:$(NC)"
+	@lsof -i:$(BACKEND_PORT) || echo "Port $(BACKEND_PORT) is free"
+	@lsof -i:$(FRONTEND_PORT) || echo "Port $(FRONTEND_PORT) is free"
 
-logs: ## Просмотр всех логов
-	@echo "$(CYAN)Выберите тип логов:$(NC)"
-	@echo "1. make docker-logs  - Логи Docker"
-	@echo "2. make heroku-logs  - Логи Heroku"
-	@echo "3. make dev-logs     - Логи разработки"
+logs: ## View all logs
+	@echo "$(CYAN)Choose log type:$(NC)"
+	@echo "1. make docker-logs  - Docker logs"
+	@echo "3. make dev-logs     - Development logs"
 
-dev-logs: ## Просмотр логов разработки
+dev-logs: ## View development logs
 	@make -j2 dev-backend-logs dev-frontend-logs
 
-dev-backend-logs: ## Просмотр логов бэкенда
+dev-backend-logs: ## View backend logs
 	@cd backend && npm run dev | grep -v "webpack"
 
-dev-frontend-logs: ## Просмотр логов фронтенда
+dev-frontend-logs: ## View frontend logs
 	@cd frontend && npm start | grep -v "webpack"
 
-# Помощь
-help: ## Показать это сообщение
-	@echo "$(CYAN)Доступные команды:$(NC)"
+# Help
+help: ## Show this message
+	@echo "$(CYAN)Available commands:$(NC)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CYAN)%-20s$(NC) %s\n", $$1, $$2}'
 
-# Проверка зависимостей
-check-deps: ## Проверка установленных зависимостей
-	@echo "$(CYAN)Проверка зависимостей...$(NC)"
-	@which node || echo "$(RED)Node.js не установлен$(NC)"
-	@which npm || echo "$(RED)npm не установлен$(NC)"
-	@which docker || echo "$(RED)Docker не установлен$(NC)"
-	@which docker-compose || echo "$(RED)Docker Compose не установлен$(NC)"
-	@which heroku || echo "$(RED)Heroku CLI не установлен$(NC)"
+# Check dependencies
+check-deps: ## Check installed dependencies
+	@echo "$(CYAN)Checking dependencies...$(NC)"
+	@which node || echo "$(RED)Node.js is not installed$(NC)"
+	@which npm || echo "$(RED)npm is not installed$(NC)"
+	@which docker || echo "$(RED)Docker is not installed$(NC)"
+	@which docker-compose || echo "$(RED)Docker Compose is not installed$(NC)"
 
-# По умолчанию
+# Default goal
 .DEFAULT_GOAL := help

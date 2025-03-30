@@ -1,4 +1,4 @@
-# CodeFlow 🚀
+# Fluxcode 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
@@ -6,9 +6,9 @@
 [![Node.js](https://img.shields.io/badge/node.js-%2343853D.svg?style=flat&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)](https://reactjs.org/)
 
-A powerful real-time collaborative coding tool. CodeFlow makes it easy to conduct technical interviews, teach programming, and collaborate on code with your team.
+A powerful real-time collaborative coding tool. Fluxcode makes it easy to conduct technical interviews, teach programming, and collaborate on code with your team.
 
-[CodeFlow Demo](https://livecoding-327628718bd5.herokuapp.com)
+[Fluxcode Demo](https://livecoding-327628718bd5.herokuapp.com)
 
 ## ✨ Features
 
@@ -177,7 +177,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Monaco Editor](https://microsoft.github.io/monaco-editor/) for the amazing code editor
 - [Socket.IO](https://socket.io/) for reliable real-time capabilities
 - [Docker](https://www.docker.com/) for secure code execution
-- All contributors who help make CodeFlow better
+- All contributors who help make Fluxcode better
 
 ---
 

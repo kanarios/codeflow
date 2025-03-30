@@ -2,22 +2,27 @@ FROM node:alpine
 
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
+# Install dependencies
 RUN npm install
 
-# Копируем все файлы проекта
-COPY public/ ./public/
-COPY src/ ./src/
+# Copy all project files
+COPY . ./
 
-# Открываем порт
+# Build production version with obfuscation
+RUN npm run build
+
+# Install serve to serve static files
+RUN npm install -g serve
+
+# Open port
 EXPOSE 3000
 
-# Устанавливаем переменные окружения для React
+# Set environment variables for React
 ENV CI=false
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
-# Запускаем приложение
-CMD ["npm", "start"]
+# Run application in production mode
+CMD ["serve", "-s", "build", "-l", "3000"]
