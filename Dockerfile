@@ -10,8 +10,6 @@ RUN npm install
 # Copy remaining frontend files
 COPY frontend/ ./
 RUN npm run build
-RUN echo "Frontend build contents:"
-RUN ls -la build/
 
 # Backend build stage
 FROM node:alpine
@@ -32,8 +30,6 @@ WORKDIR /app
 
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/build ./public
-RUN echo "Public directory contents:"
-RUN ls -la public/
 
 # Set up backend dependencies
 COPY backend/package*.json ./

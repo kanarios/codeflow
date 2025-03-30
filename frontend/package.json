@@ -1,5 +1,5 @@
 {
-  "name": "livecoding-frontend",
+  "name": "fluxcode-frontend",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -9,7 +9,9 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "js-cookie": "^3.0.5",
+    "monaco-editor": "0.29.1",
     "monaco-languageclient": "^9.5.0",
+    "monaco-editor-webpack-plugin": "5.0.0",
     "pyright": "^1.1.325",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -25,9 +27,9 @@
     "ws": "^8.17.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "react-app-rewired start",
+    "build": "GENERATE_SOURCEMAP=false react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -47,5 +49,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "react-app-rewired": "^2.2.1",
+    "terser-webpack-plugin": "^5.3.10",
+    "monaco-editor-webpack-plugin": "5.0.0"
   }
 }

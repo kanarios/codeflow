@@ -9,15 +9,20 @@ COPY package*.json ./
 RUN npm install
 
 # Copy all project files
-COPY public/ ./public/
-COPY src/ ./src/
+COPY . ./
+
+# Build production version with obfuscation
+RUN npm run build
+
+# Install serve to serve static files
+RUN npm install -g serve
 
 # Open port
 EXPOSE 3000
 
 # Set environment variables for React
 ENV CI=false
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
-# Run application
-CMD ["npm", "start"]
+# Run application in production mode
+CMD ["serve", "-s", "build", "-l", "3000"]
