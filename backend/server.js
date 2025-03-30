@@ -8,7 +8,7 @@ const path = require('path');
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 const PORT = process.env.PORT || 5001;
 
-// Обслуживание статических файлов из папки build
+// Serving static files from build folder
 if (process.env.NODE_ENV === 'production') {
   const buildPath = path.join(__dirname, 'public');
   console.log('Serving static files from:', buildPath);
@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === 'production') {
     console.log('Directory contents:', require('fs').readdirSync(buildPath));
     app.use(express.static(buildPath));
 
-    // Важно: этот маршрут должен быть после всех остальных маршрутов API
+    // Important: this route should be after all other API routes
     app.get('/*', (req, res) => {
       console.log('Serving index.html for path:', req.url);
       res.sendFile(path.join(buildPath, 'index.html'));
@@ -34,7 +34,7 @@ const io = require('socket.io')(http, {
   }
 });
 
-// Добавляем CORS middleware для Express
+// Add CORS middleware for Express
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', corsOrigin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -42,20 +42,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Добавляем простой эндпоинт для проверки работоспособности
+// Add a simple health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Хранилище активных сессий
+// Storage of active sessions
 const sessions = new Map();
-const users = new Map(); // Хранилище имен пользователей
+const users = new Map(); // Storage of user names
 
-// Обработка WebSocket соединений
+// WebSocket connection handling
 io.on('connection', (socket) => {
-  console.log('Пользователь подключился');
+  console.log('User connected');
 
-  // Создание новой сессии
+  // Creating a new session
   socket.on('create_session', (language) => {
     const sessionId = uuidv4();
     sessions.set(sessionId, {
@@ -67,17 +67,17 @@ io.on('connection', (socket) => {
     socket.sessionId = sessionId;
     socket.emit('session_created', sessionId);
 
-    // Отправляем информацию о новом участнике всем в сессии
+    // Send information about the new participant to everyone in the session
     const participantsInfo = Array.from(sessions.get(sessionId).participants).map(id => ({
       userId: id,
-      userName: users.get(id) || 'Аноним'
+      userName: users.get(id) || 'Anonymous'
     }));
 
-    // Отправляем всем участникам обновленный список
+    // Send updated list to all participants
     io.to(sessionId).emit('participants_update', participantsInfo);
   });
 
-  // Присоединение к существующей сессии
+  // Joining an existing session
   socket.on('join_session', (sessionId) => {
     const session = sessions.get(sessionId);
     if (session) {
@@ -85,26 +85,26 @@ io.on('connection', (socket) => {
       socket.join(sessionId);
       socket.sessionId = sessionId;
 
-      // Отправляем начальное состояние сессии
+      // Send initial session state
       socket.emit('session_joined', {
         code: session.code,
         language: session.language
       });
 
-      // Отправляем информацию о новом участнике всем в сессии
+      // Send information about the new participant to everyone in the session
       const participantsInfo = Array.from(session.participants).map(id => ({
         userId: id,
-        userName: users.get(id) || 'Аноним'
+        userName: users.get(id) || 'Anonymous'
       }));
 
-      console.log(`Пользователь ${socket.id} присоединился к сессии ${sessionId}. Список участников:`, participantsInfo);
+      console.log(`User ${socket.id} joined session ${sessionId}. Participants list:`, participantsInfo);
 
-      // Отправляем всем участникам обновленный список
+      // Send updated list to all participants
       io.to(sessionId).emit('participants_update', participantsInfo);
     }
   });
 
-  // Обновление кода
+  // Code update
   socket.on('code_change', ({ sessionId, code }) => {
     const session = sessions.get(sessionId);
     if (session) {
@@ -113,7 +113,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Выполнение кода
+  // Code execution
   socket.on('execute_code', async ({ sessionId, code }) => {
     const session = sessions.get(sessionId);
     if (session) {
@@ -126,63 +126,63 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Установка имени пользователя
+  // Setting user name
   socket.on('set_user_name', ({ fullName }) => {
-    console.log(`Пользователь ${socket.id} установил имя: ${fullName}`);
+    console.log(`User ${socket.id} set name: ${fullName}`);
     users.set(socket.id, fullName);
 
-    // Если пользователь в сессии, отправляем обновленную информацию всем участникам
+    // If the user is in a session, send updated information to all participants
     if (socket.sessionId) {
       const session = sessions.get(socket.sessionId);
       if (session) {
         const participantsInfo = Array.from(session.participants).map(id => ({
           userId: id,
-          userName: users.get(id) || 'Аноним'
+          userName: users.get(id) || 'Anonymous'
         }));
-        console.log(`Отправляем обновленный список участников для сессии ${socket.sessionId}:`, participantsInfo);
+        console.log(`Sending updated participants list for session ${socket.sessionId}:`, participantsInfo);
         io.to(socket.sessionId).emit('participants_update', participantsInfo);
       }
     }
   });
 
-  // Обновим обработчик выделения
+  // Update selection handler
   socket.on('selection_change', ({ sessionId, selection, userName }) => {
-    // Отправляем информацию о выделении всем пользователям в сессии, кроме отправителя
+    // Send selection information to all users in the session except the sender
     socket.to(sessionId).emit('selection_update', {
       userId: socket.id,
       selection,
-      userName: userName || 'Аноним'
+      userName: userName || 'Anonymous'
     });
   });
 
   socket.on('disconnect', () => {
-    console.log(`Пользователь ${socket.id} отключился`);
+    console.log(`User ${socket.id} disconnected`);
 
     if (socket.sessionId) {
       const session = sessions.get(socket.sessionId);
       if (session) {
-        // Удаляем пользователя из списка участников сессии
+        // Remove user from session participants list
         session.participants.delete(socket.id);
 
-        // Отправляем уведомление о выходе пользователя
+        // Send notification about user leaving
         io.to(socket.sessionId).emit('user_disconnected', {
           userId: socket.id,
           userName: users.get(socket.id)
         });
 
-        // Отправляем обновленный список участников
+        // Send updated participants list
         const participantsInfo = Array.from(session.participants).map(id => ({
           userId: id,
-          userName: users.get(id) || 'Аноним'
+          userName: users.get(id) || 'Anonymous'
         }));
 
-        console.log(`Обновленный список участников после отключения пользователя ${socket.id}:`, participantsInfo);
+        console.log(`Updated participants list after user ${socket.id} disconnection:`, participantsInfo);
 
         io.to(socket.sessionId).emit('participants_update', participantsInfo);
 
-        // Если в сессии не осталось участников, удаляем ее
+        // If no participants left in the session, delete it
         if (session.participants.size === 0) {
-          console.log(`Сессия ${socket.sessionId} удалена, так как не осталось участников`);
+          console.log(`Session ${socket.sessionId} deleted as no participants left`);
           sessions.delete(socket.sessionId);
         }
       }
@@ -192,5 +192,5 @@ io.on('connection', (socket) => {
 });
 
 http.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+  console.log(`Server started on port ${PORT}`);
 });

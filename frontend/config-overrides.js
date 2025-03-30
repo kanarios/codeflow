@@ -12,7 +12,15 @@ module.exports = function override(config, env) {
       'quickOutline', 'referenceSearch', 'rename', 'smartSelect', 'snippets',
       'suggest', 'toggleHighContrast', 'toggleTabFocusMode', 'transpose',
       'wordHighlighter', 'wordOperations', 'wordPartOperations'
-    ]
+    ],
+    customLanguages: [{
+      label: 'python',
+      entry: [require.resolve('monaco-editor/esm/vs/basic-languages/python/python')],
+      worker: {
+        id: 'monaco-editor/esm/vs/language/python/pythonWorker',
+        entry: ''
+      }
+    }]
   }));
 
   return config;

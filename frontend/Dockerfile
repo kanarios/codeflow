@@ -2,22 +2,22 @@ FROM node:alpine
 
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
+# Install dependencies
 RUN npm install
 
-# Копируем все файлы проекта
+# Copy all project files
 COPY public/ ./public/
 COPY src/ ./src/
 
-# Открываем порт
+# Open port
 EXPOSE 3000
 
-# Устанавливаем переменные окружения для React
+# Set environment variables for React
 ENV CI=false
 ENV NODE_ENV=development
 
-# Запускаем приложение
+# Run application
 CMD ["npm", "start"]

@@ -1,4 +1,4 @@
-/* Основные стили и переменные */
+/* Main styles and variables */
 :root {
   --primary: #10b981;
   --primary-dark: #059669;
@@ -13,7 +13,7 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Глобальные стили */
+/* Global styles */
 body {
   background: var(--background);
   color: var(--text);
@@ -33,15 +33,17 @@ body {
   animation: subtleShift 20s ease-in-out infinite;
 }
 
-/* Заголовок */
+/* Header */
 .title {
-  text-align: center;
-  font-size: 3rem;
+  text-align: left;
+  font-size: 2rem;
   font-weight: 800;
-  margin-bottom: 3rem;
+  /* margin-bottom: 2rem; */
+  margin-top: 0.05rem;
   cursor: pointer;
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -49,6 +51,7 @@ body {
   text-decoration: none;
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -58,7 +61,7 @@ body {
   transition: var(--transition);
 }
 
-/* Форма ввода имени */
+/* Name input form */
 .name-input-container {
   max-width: 500px;
   margin: 0 auto;
@@ -86,7 +89,7 @@ body {
   gap: 1.2rem;
 }
 
-/* Стили для контейнера ввода никнейма */
+/* Nickname input container styles */
 .nickname-input-container {
   display: flex;
   align-items: center;
@@ -103,7 +106,7 @@ body {
   color: var(--text);
   font-size: 1rem;
   transition: var(--transition);
-  padding-right: 50px; /* Место для кнопки */
+  padding-right: 50px; /* Space for button */
 }
 
 .generate-nickname-button {
@@ -168,7 +171,7 @@ body {
   cursor: not-allowed;
 }
 
-/* Контролы сессии */
+/* Session controls */
 .session-controls {
   max-width: 600px;
   margin: 2rem auto;
@@ -319,7 +322,7 @@ body {
   right: 0;
 }
 
-/* Анимации */
+/* Animations */
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
@@ -337,7 +340,7 @@ body {
   100% { transform: scale(1); }
 }
 
-/* Кастомный скроллбар */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -356,7 +359,7 @@ body {
   background: var(--primary-dark);
 }
 
-/* Адаптивный дизайн */
+/* Responsive design */
 @media (max-width: 768px) {
   .app {
     padding: 1rem;
@@ -377,7 +380,7 @@ body {
   }
 }
 
-/* Эффекты наведения и фокуса */
+/* Hover and focus effects */
 button, input, select {
   transition: var(--transition);
 }
@@ -387,7 +390,7 @@ button:focus, input:focus, select:focus {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
 }
 
-/* Стили для селекта языка */
+/* Styles for language selector */
 select {
   padding: 0.6rem 2rem 0.6rem 1rem;
   background: var(--surface);
@@ -403,7 +406,7 @@ select {
   background-size: 1.2rem;
 }
 
-/* Стили для панели вывода */
+/* Styles for output panel */
 .output-container {
   width: 50%;
   min-width: 50%;
@@ -452,7 +455,7 @@ select {
   }
 }
 
-/* Адаптивный дизайн для формы */
+/* Responsive design for form */
 @media (max-width: 480px) {
   .session-controls form {
     flex-direction: column;
@@ -469,7 +472,7 @@ select {
   }
 }
 
-/* Стили для информации о пользователе */
+/* Styles for user information */
 .user-info {
   position: absolute;
   top: 1rem;
@@ -517,7 +520,7 @@ select {
   }
 }
 
-/* Стили для выделений других пользователей */
+/* Styles for remote selections */
 .remote-selection {
   background-color: rgba(255, 255, 255, 0.1);
   position: relative;
@@ -550,7 +553,7 @@ select {
   pointer-events: none;
 }
 
-/* Стили для курсоров других пользователей с разными цветами */
+/* Styles for remote cursors of other users with different colors */
 .remote-cursor-0 {
   background-color: #ffc600;
 }
@@ -567,7 +570,7 @@ select {
   background-color: #c6ff00;
 }
 
-/* Стили для курсоров других пользователей */
+/* Styles for remote cursors of other users */
 .remote-cursor {
   position: absolute;
   width: 2px;
@@ -594,7 +597,7 @@ select {
   50% { opacity: 0.5; }
 }
 
-/* Стили для списка участников */
+/* Styles for participants list */
 .participants-container {
   display: flex;
   padding: 0 16px;
@@ -646,7 +649,7 @@ select {
   white-space: nowrap;
 }
 
-/* Стили для заголовка редактора */
+/* Styles for editor header */
 .editor-header {
   display: flex;
   justify-content: space-between;
@@ -748,7 +751,7 @@ select {
   opacity: 0.9;
 }
 
-/* Основные стили для контейнера приложения */
+/* Main styles for application container */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -757,7 +760,7 @@ select {
   color: #fff;
 }
 
-/* Стили для контейнера редактора */
+/* Styles for editor container */
 .editor-container {
   display: flex;
   flex-direction: column;
@@ -765,7 +768,7 @@ select {
   overflow: hidden;
 }
 
-/* Стили для контейнера редактора и вывода */
+/* Styles for editor and output container */
 .editor-output-container {
   display: flex;
   height: calc(100% - 100px);
@@ -773,22 +776,22 @@ select {
   width: 100%;
 }
 
-/* Стили для контейнера Monaco Editor */
+/* Styles for Monaco Editor container */
 .monaco-editor-container {
-  width: 50%;
-  min-width: 50%;
-  max-width: 50%;
+  width: 75%;
+  min-width: 60%;
+  max-width: 75%;
   overflow: hidden;
   position: relative;
   border-right: 1px solid #333;
 }
 
-/* Стили для иконок */
+/* Styles for icons */
 .icon {
   margin-right: 5px;
 }
 
-/* Анимация для индикатора выполнения */
+/* Animation for execution indicator */
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -799,7 +802,7 @@ select {
   animation: pulse 1.5s infinite;
 }
 
-/* Стили для начального экрана */
+/* Styles for welcome screen */
 .welcome-container {
   display: flex;
   flex-direction: column;
@@ -883,7 +886,7 @@ select {
   font-size: 0.9rem;
 }
 
-/* Медиа-запросы для адаптивности */
+/* Media queries for responsiveness */
 @media (max-width: 768px) {
   .welcome-header h1 {
     font-size: 2rem;
@@ -913,5 +916,71 @@ select {
 
   .output-container {
     height: 50%;
+  }
+}
+
+/* Cookie Banner */
+.cookie-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 9999;
+  animation: fadeSlideUp 0.6s ease forwards;
+}
+
+.cookie-content {
+  flex: 1;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.cookie-content p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cookie-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  margin-left: 16px;
+  transition: var(--transition);
+}
+
+.cookie-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  transform: rotate(90deg);
+}
+
+@media (max-width: 768px) {
+  .cookie-banner {
+    bottom: 10px;
+    padding: 12px 16px;
+  }
+
+  .cookie-content {
+    font-size: 0.85rem;
   }
 }

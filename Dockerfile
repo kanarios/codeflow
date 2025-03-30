@@ -1,22 +1,22 @@
-# Этап сборки фронтенда
+# Frontend build stage
 FROM node:alpine as frontend-builder
 
 WORKDIR /app/frontend
-# Копируем файлы package.json фронтенда
+# Copy frontend package.json files
 COPY frontend/package*.json ./
 COPY frontend/config-overrides.js ./
 RUN npm install
 
-# Копируем остальные файлы фронтенда
+# Copy remaining frontend files
 COPY frontend/ ./
 RUN npm run build
 RUN echo "Frontend build contents:"
 RUN ls -la build/
 
-# Этап сборки бэкенда
+# Backend build stage
 FROM node:alpine
 
-# Устанавливаем интерпретаторы языков
+# Install language interpreters
 RUN apk add --no-cache \
     python3 \
     nodejs \
@@ -24,27 +24,27 @@ RUN apk add --no-cache \
     openjdk11 \
     netcat-openbsd
 
-# Устанавливаем TypeScript глобально
+# Set up TypeScript globally
 RUN npm install -g typescript
 
-# Создаем структуру приложения
+# Create application structure
 WORKDIR /app
 
-# Копируем собранный фронтенд
+# Copy built frontend
 COPY --from=frontend-builder /app/frontend/build ./public
 RUN echo "Public directory contents:"
 RUN ls -la public/
 
-# Устанавливаем зависимости бэкенда
+# Set up backend dependencies
 COPY backend/package*.json ./
 RUN npm install
 
-# Копируем код бэкенда
+# Copy backend code
 COPY backend/ ./
 
-# Открываем порт
+# Open port
 EXPOSE $PORT
 
-# Запускаем приложение
+# Run application
 ENV NODE_ENV=production
 CMD ["node", "server.js"]

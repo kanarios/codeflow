@@ -1,17 +1,12 @@
 {
-  "name": "Livecoding Interview",
+  "name": "Fluxcode: Livecoding Interview",
   "description": "Real-time collaborative coding platform",
-  "repository": "https://github.com/yourusername/livecoding-interview",
+  "repository": "https://github.com/kanarios/codeflow",
   "keywords": ["node", "express", "socket.io", "react"],
   "env": {
     "NODE_ENV": {
       "description": "Environment setting",
       "value": "production"
     }
-  },
-  "buildpacks": [
-    {
-      "url": "heroku/nodejs"
-    }
-  ]
+  }
 }

@@ -1,4 +1,4 @@
-/* Стили для редактора */
+/* Editor styles */
 .editor-container {
   display: flex;
   flex-direction: column;
@@ -149,7 +149,7 @@
   padding: 1rem;
 }
 
-/* Стили для удаленных курсоров и выделений из monaco-collab-ext */
+/* Styles for remote cursors and selections from monaco-collab-ext */
 .monaco-remote-cursor {
   position: absolute;
   pointer-events: none;

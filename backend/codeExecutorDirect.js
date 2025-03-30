@@ -31,7 +31,7 @@ function executeJavaScript(code) {
     const vm = require('vm');
     let output = [];
 
-    // Создаем безопасный контекст выполнения
+    // Create safe execution context
     const context = {
       console: {
         log: (...args) => {
@@ -40,8 +40,8 @@ function executeJavaScript(code) {
           ).join(' '));
         }
       },
-      setTimeout: () => {}, // Заглушка для setTimeout
-      setInterval: () => {}, // Заглушка для setInterval
+      setTimeout: () => {}, // Stub for setTimeout
+      setInterval: () => {}, // Stub for setInterval
       process: undefined,
       require: undefined
     };
@@ -63,10 +63,10 @@ async function executeTypeScript(code, tmpDir, fileId) {
   const jsFile = path.join(tmpDir, `${fileId}.js`);
 
   try {
-    // Записываем TypeScript код во временный файл
+    // Write TypeScript code to a temporary file
     await fs.writeFile(tsFile, code);
 
-    // Компилируем TypeScript в JavaScript
+    // Compile TypeScript to JavaScript
     await new Promise((resolve, reject) => {
       exec(`tsc ${tsFile} --target ES2018 --module commonjs`, {
         timeout: 5000
@@ -76,13 +76,13 @@ async function executeTypeScript(code, tmpDir, fileId) {
       });
     });
 
-    // Читаем скомпилированный JavaScript
+    // Read compiled JavaScript
     const jsCode = await fs.readFile(jsFile, 'utf8');
 
-    // Выполняем JavaScript
+    // Execute JavaScript
     return await executeJavaScript(jsCode);
   } finally {
-    // Очищаем временные файлы
+    // Clean up temporary files
     await Promise.all([
       fs.unlink(tsFile).catch(() => {}),
       fs.unlink(jsFile).catch(() => {})
@@ -107,7 +107,7 @@ async function executePython(code, tmpDir, fileId) {
 }
 
 async function executeJava(code, tmpDir, fileId) {
-  // Извлекаем имя класса из кода
+  // Extract class name from code
   const classMatch = code.match(/public\s+class\s+(\w+)/);
   if (!classMatch) {
     throw new Error('No public class found in Java code');
@@ -118,10 +118,10 @@ async function executeJava(code, tmpDir, fileId) {
   const classFile = path.join(tmpDir, `${className}.class`);
 
   try {
-    // Записываем Java код во временный файл
+    // Write Java code to a temporary file
     await fs.writeFile(javaFile, code);
 
-    // Компилируем Java код
+    // Compile Java code
     await new Promise((resolve, reject) => {
       exec(`javac ${javaFile}`, {
         timeout: 5000
@@ -131,7 +131,7 @@ async function executeJava(code, tmpDir, fileId) {
       });
     });
 
-    // Запускаем скомпилированный Java класс
+    // Run compiled Java class
     return new Promise((resolve, reject) => {
       exec(`java -cp ${tmpDir} ${className}`, {
         timeout: 5000,
@@ -142,7 +142,7 @@ async function executeJava(code, tmpDir, fileId) {
       });
     });
   } finally {
-    // Очищаем временные файлы
+    // Clean up temporary files
     await Promise.all([
       fs.unlink(javaFile).catch(() => {}),
       fs.unlink(classFile).catch(() => {})

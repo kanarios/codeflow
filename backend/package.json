@@ -1,7 +1,7 @@
 {
-  "name": "livecoding-backend",
+  "name": "fluxcode-backend",
   "version": "1.0.0",
-  "description": "Backend for livecoding interview service",
+  "description": "Backend for livecoding interview service Fluxcode",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,8 +13,11 @@
   "dependencies": {
     "dockerode": "^4.0.4",
     "express": "^4.21.2",
+    "pyright": "^1.1.398",
     "socket.io": "^4.8.1",
-    "uuid": "^11.0.5"
+    "uuid": "^11.1.0",
+    "vscode-ws-jsonrpc": "^3.4.0",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
