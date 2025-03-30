@@ -68,7 +68,7 @@ const NameInput = React.memo(({
       <div className="nickname-input-container">
         <input
           type="text"
-          placeholder="Enter your nickname *"
+          placeholder="Enter your nickname"
           value={nickname}
           onChange={onNicknameChange}
           required
@@ -207,7 +207,7 @@ const CookieBanner = ({ onClose }) => {
   return (
     <div className="cookie-banner">
       <div className="cookie-content">
-        <p>Это приложение использует файлы cookie для сохранения вашего никнейма и обеспечения лучшего опыта использования.</p>
+        <p>This application uses&nbsp;cookies to&nbsp;save your&nbsp;nickname and&nbsp;provide a&nbsp;better user&nbsp;experience.</p>
       </div>
       <button className="cookie-close" onClick={onClose} aria-label="Закрыть" title="Закрыть">
         ✕
