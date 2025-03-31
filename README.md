@@ -1,4 +1,4 @@
-# Fluxcode 🚀
+# Fluxcode
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
@@ -8,7 +8,7 @@
 
 A powerful real-time collaborative coding tool. Fluxcode makes it easy to conduct technical interviews, teach programming, and collaborate on code with your team.
 
-[Fluxcode Demo](https://livecoding-327628718bd5.herokuapp.com)
+[Fluxcode](https://fluxcode.live)
 
 ## ✨ Features
 
