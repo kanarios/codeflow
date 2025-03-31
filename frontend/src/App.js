@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 import './editor.css';
 import './App.css';
 import { RemoteCursorManager, RemoteSelectionManager } from '@convergencelabs/monaco-collab-ext';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const BACKEND_URL = process.env.NODE_ENV === 'production'
   ? window.location.origin
@@ -572,6 +574,15 @@ function App() {
     const url = `${window.location.origin}?session=${sessionId}`;
     try {
       await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        className: 'glass-toast'
+      });
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
@@ -1646,6 +1657,7 @@ function App() {
       )}
 
       {showCookieBanner && <CookieBanner onClose={handleCookieConsent} />}
+      <ToastContainer />
     </div>
   );
 }
